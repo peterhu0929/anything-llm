@@ -112,6 +112,12 @@ export default function SingleUserAuth() {
                 ? t("login.multi-user.validating")
                 : t("login.multi-user.login")}
             </button>
+            <a
+              href="/api/sso/azure"
+              className="text-white text-sm hover:text-primary-button hover:underline mt-2"
+            >
+              {t("login.multi-user.azure-sso")}
+            </a>
           </div>
         </div>
       </form>
