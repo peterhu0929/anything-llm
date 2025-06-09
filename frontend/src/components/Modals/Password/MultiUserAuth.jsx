@@ -341,6 +341,12 @@ export default function MultiUserAuth() {
               {t("login.multi-user.forgot-pass")}?
               <b>{t("login.multi-user.reset")}</b>
             </button>
+            <a
+              href="/api/sso/azure"
+              className="text-white text-sm hover:text-primary-button hover:underline"
+            >
+              {t("login.multi-user.azure-sso")}
+            </a>
           </div>
         </div>
       </form>

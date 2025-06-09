@@ -116,6 +116,7 @@ const TRANSLATIONS = {
       validating: "Validating...",
       "forgot-pass": "Forgot password",
       reset: "Reset",
+      "azure-sso": "Login with Azure AD",
     },
     "sign-in": {
       start: "Sign in to your",
