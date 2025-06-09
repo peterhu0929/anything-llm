@@ -49,6 +49,24 @@ const KEY_MAPPING = {
     ],
   },
 
+  // Azure AD SSO Settings
+  AzureAdClientId: {
+    envKey: "AZURE_AD_CLIENT_ID",
+    checks: [isNotEmpty],
+  },
+  AzureAdClientSecret: {
+    envKey: "AZURE_AD_CLIENT_SECRET",
+    checks: [isNotEmpty],
+  },
+  AzureAdTenantId: {
+    envKey: "AZURE_AD_TENANT_ID",
+    checks: [isNotEmpty],
+  },
+  AzureAdRedirectUri: {
+    envKey: "AZURE_AD_REDIRECT_URI",
+    checks: [isNotEmpty],
+  },
+
   // Anthropic Settings
   AnthropicApiKey: {
     envKey: "ANTHROPIC_API_KEY",

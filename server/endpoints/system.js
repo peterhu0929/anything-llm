@@ -58,6 +58,8 @@ const { simpleSSOEnabled } = require("../utils/middleware/simpleSSOEnabled");
 const { TemporaryAuthToken } = require("../models/temporaryAuthToken");
 const { SystemPromptVariables } = require("../models/systemPromptVariables");
 const { VALID_COMMANDS } = require("../utils/chats");
+const { getAzureClient } = require("../utils/azureAd");
+const crypto = require("crypto");
 
 function systemEndpoints(app) {
   if (!app) return;
@@ -298,6 +300,57 @@ function systemEndpoints(app) {
       });
     }
   );
+
+  app.get("/sso/azure", async (request, response) => {
+    try {
+      const client = await getAzureClient();
+      const state = Buffer.from(request.query.redirectTo || "").toString("base64");
+      const authUrl = client.authorizationUrl({
+        scope: process.env.AZURE_AD_SCOPES || "openid profile email",
+        response_mode: "query",
+        state,
+      });
+      response.redirect(authUrl);
+    } catch (e) {
+      console.error(e.message);
+      response.status(500).send("Azure AD not configured");
+    }
+  });
+
+  app.get("/sso/azure/callback", async (request, response) => {
+    try {
+      const client = await getAzureClient();
+      const params = client.callbackParams(request);
+      const tokenSet = await client.callback(process.env.AZURE_AD_REDIRECT_URI, params, { state: params.state });
+      const claims = tokenSet.claims();
+      const username = String(
+        (claims.preferred_username || claims.email || claims.upn || claims.sub || "user")
+      ).split("@")[0].toLowerCase();
+
+      let existing = await User._get({ username });
+      if (!existing) {
+        const pwd = crypto.randomBytes(16).toString("hex");
+        const res = await User.create({ username, password: pwd });
+        existing = res.user;
+      }
+
+      if (existing.suspended) {
+        return response.status(403).send("Account suspended");
+      }
+
+      const { token } = await TemporaryAuthToken.issue(existing.id);
+      const redirectTo = params.state
+        ? Buffer.from(params.state, "base64").toString("utf8")
+        : "";
+      const url = `/sso/simple?token=${token}${
+        redirectTo ? `&redirectTo=${encodeURIComponent(redirectTo)}` : ""
+      }`;
+      response.redirect(url);
+    } catch (e) {
+      console.error(e);
+      response.status(500).send("Azure AD authentication failed");
+    }
+  });
 
   app.post(
     "/system/recover-account",
